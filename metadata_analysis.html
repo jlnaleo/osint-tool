@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferramenta OSINT - Análise de Metadados</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            padding-top: 60px;
+            background-color: #f8f9fa;
+        }
+        .card {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: #343a40;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        .metadata-icon {
+            font-size: 2rem;
+            margin-right: 10px;
+        }
+        .image-color {
+            color: #FF5722;
+        }
+        .document-color {
+            color: #2196F3;
+        }
+        .spreadsheet-color {
+            color: #4CAF50;
+        }
+        .pdf-color {
+            color: #9C27B0;
+        }
+        .result-container {
+            display: none;
+            margin-top: 20px;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #343a40;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        footer {
+            margin-top: 50px;
+            padding: 20px 0;
+            background-color: #343a40;
+            color: white;
+        }
+        .file-preview {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .metadata-table {
+            font-size: 0.9rem;
+        }
+        .metadata-table th {
+            width: 40%;
+        }
+        .metadata-section {
+            margin-bottom: 15px;
+        }
+        .metadata-section h6 {
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        .file-type-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">Ferramenta OSINT</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Início</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/social_media">Redes Sociais</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/contact_info">E-mails e Contatos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/image_recognition">Reconhecimento de Imagens</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/metadata_analysis">Análise de Metadados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">Sobre</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <div class="container">
+        <h1 class="mb-4">Análise de Metadados de Arquivos</h1>
+        <p class="lead">Utilize este módulo para extrair e analisar metadados de diferentes tipos de arquivos.</p>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Selecione um Arquivo para Análise</h5>
+            </div>
+            <div class="card-body">
+                <form id="metadataForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="fileInput" class="form-label">Arquivo</label>
+                        <input type="file" class="form-control" id="fileInput" name="file" required>
+                        <div class="form-text">Formatos suportados: JPG, PNG, TIFF, GIF, PDF, DOCX, XLSX, CSV, etc.</div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="exportResults" name="export_results">
+                            <label class="form-check-label" for="exportResults">
+                                Exportar resultados para CSV após análise
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Analisar</button>
+                </form>
+
+                <!-- Loader -->
+                <div id="metadataLoader" class="loader"></div>
+
+                <!-- Resultados -->
+                <div id="metadataResults" class="result-container">
+                    <h4 class="mt-4">Resultados da Análise</h4>
+                    
+                    <!-- Informações Básicas do Arquivo -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                Informações Básicas
+                                <span id="fileTypeBadge" class="badge bg-secondary file-type-badge"></span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-striped metadata-table">
+                                        <tbody>
+                                            <tr>
+                                                <th>Nome do Arquivo</th>
+                                                <td id="fileName"></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Tipo de Arquivo</th>
+                                                <td id="fileType"></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Tamanho</th>
+                                                <td id="fileSize"></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Data de Criação</th>
+                                                <td id="fileCreationDate"></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Data de Modificação</th>
+                                                <td id="fileModificationDate"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-6" id="filePreviewContainer">
+                                    <div class="text-center">
+                                        <img id="filePreview" class="file-preview" alt="Pré-visualização do arquivo">
+                                        <div id="filePreviewPlaceholder" class="text-center p-5 bg-light rounded">
+                                            <i class="fas fa-file fa-3x text-secondary mb-3"></i>
+                                            <p class="text-muted">Pré-visualização não disponível</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Metadados Específicos por Tipo de Arquivo -->
+                    <div id="specificMetadata">
+                        <!-- Metadados de Imagem -->
+                        <div id="imageMetadata" class="card mb-3" style="display: none;">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-image image-color"></i> Metadados da Imagem
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="metadata-section">
+                                            <h6>Informações da Imagem</h6>
+                                            <table class="table table-striped metadata-table">
+                                                <tbody id="imageInfoTable"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="metadata-section">
+                                            <h6>Informações EXIF</h6>
+                                            <table class="table table-striped metadata-table">
+                                                <tbody id="exifInfoTable"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div id="gpsInfoSection" class="metadata-section" style="display: none;">
+                                    <h6>Informações de Localização GPS</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <table class="table table-striped metadata-table">
+                                                <tbody id="gpsInfoTable"></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-map-marker-alt"></i> 
+                                                <a id="gpsMapLink" href="#" target="_blank">Ver localização no Google Maps</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Metadados de Documento -->
+                        <div id="documentMetadata" class="card mb-3" style="display: none;">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-file-word document-color"></i> Metadados do Documento
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="metadata-section">
+                                            <h6>Propriedades do Documento</h6>
+                                            <table class="table table-striped metadata-table">
+                                                <tbody id="documentPropertiesTable"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="metadata-section">
+                                            <h6>Estatísticas do Documento</h6>
+                                            <table class="table table-striped metadata-table">
+                                                <tbody id="documentStatsTable"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Metadados de Planilha -->
+                        <div id="spreadsheetMetadata" class="card mb-3" style="display: none;">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-file-excel spreadsheet-color"></i> Metadados da Planilha
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="metadata-section">
+                                            <h6>Propriedades da Planilha</h6>
+                                            <table class="table table-striped metadata-table">
+                                                <tbody id="spreadsheetPropertiesTable"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="metadata-section">
+                                            <h6>Informações das Planilhas</h6>
+                                            <div id="sheetsInfoContainer"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Metadados de PDF -->
+                        <div id="pdfMetadata" class="card mb-3" style="display: none;">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-file-pdf pdf-color"></i> Metadados do PDF
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="metadata-section">
+                                            <h6>Propriedades do PDF</h6>
+                                            <table class="table table-striped metadata-table">
+                                                <tbody id="pdfPropertiesTable"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="metadata-section">
+                                            <h6>Informações Adicionais</h6>
+                                            <table class="table table-striped metadata-table">
+                                                <tbody id="pdfInfoTable"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botões de Ação -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <button id="exportCsvBtn" class="btn btn-success">
+                            <i class="fas fa-file-csv"></i> Exportar para CSV
+                        </button>
+                        <button id="newAnalysisBtn" class="btn btn-primary">
+                            <i class="fas fa-redo"></i> Nova Análise
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center">
+        <div class="container">
+            <p>&copy; 2025 Ferramenta OSINT - Todos os direitos reservados</p>
+            <p>Desenvolvido para fins educacionais e de pesquisa</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Função para mostrar pré-visualização do arquivo
+        document.getElementById('fileInput').addEventListener('change', function() {
+            const file = this.files[0];
+            const previewContainer = document.getElementById('filePreviewContainer');
+            const preview = document.getElementById('filePreview');
+            const placeholder = document.getElementById('filePreviewPlaceholder');
+            
+            if (file) {
+                // Verificar se é uma imagem
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                        placeholder.style.display = 'none';
+                    }
+                    
+                    reader.readAsDataURL(file);
+                } else {
+                    // Não é uma imagem, mostrar placeholder
+                    preview.style.display = 'none';
+                    placeholder.style.display = 'block';
+                    
+                    // Atualizar ícone do placeholder com base no tipo de arquivo
+                    const iconElement = placeholder.querySelector('i');
+                    
+                    if (file.type.includes('pdf')) {
+                        iconElement.className = 'fas fa-file-pdf fa-3x text-danger mb-3';
+                    } else if (file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
+                        iconElement.className = 'fas fa-file-word fa-3x text-primary mb-3';
+                    } else if (file.type.includes('excel') || file.name.endsWith('.xls') || file.name.endsWith('.xlsx') || file.name.endsWith('.csv')) {
+                        iconElement.className = 'fas fa-file-excel fa-3x text-success mb-3';
+                    } else {
+                        iconElement.className = 'fas fa-file fa-3x text-secondary mb-3';
+                    }
+                }
+            } else {
+                // Nenhum arquivo selecionado
+                preview.style.display = 'none';
+                placeholder.style.display = 'block';
+            }
+        });
+        
+        // Análise de Metadados
+        document.getElementById('metadataForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Mostrar loader
+            document.getElementById('metadataLoader').style.display = 'block';
+            document.getElementById('metadataResults').style.display = 'none';
+            
+            // Obter dados do formulário
+            const formData = new FormData(this);
+            
+            // Enviar requisição
+            fetch('/api/metadata_analysis/analyze_file', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Esconder loader
+                document.getElementById('metadataLoader').style.display = 'none';
+                
+                if (data.error) {
+                    alert('Erro: ' + data.error);
+                    return;
+                }
+                
+                // Preencher informações básicas
+                document.getElementById('fileName').textContent = data.file_name || 'N/A';
+                document.getElementById('fileType').textContent = data.file_type || 'Desconhecido';
+                document.getElementById('fileSize').textContent = data.file_size_human || 'N/A';
+                document.getElementById('fileCreationDate').textContent = formatDate(data.creation_date) || 'N/A';
+                document.getElementById('fileModificationDate').textContent = formatDate(data.modification_date) || 'N/A';
+                
+                // Definir badge de tipo de arquivo
+                const fileTypeBadge = document.getElementById('fileTypeBadge');
+                fileTypeBadge.textContent = data.file_type || 'Desconhecido';
+                
+                // Definir cor do badge com base no tipo de arquivo
+                switch (data.file_type) {
+                    case 'image':
+                        fileTypeBadge.className = 'badge bg-danger file-type-badge';
+                        break;
+                    case 'document':
+                        fileTypeBadge.className = 'badge bg-primary file-type-badge';
+                        break;
+                    case 'spreadsheet':
+                    case 'csv':
+                        fileTypeBadge.className = 'badge bg-success file-type-badge';
+                        break;
+                    case 'pdf':
+                        fileTypeBadge.className = 'badge bg-purple file-type-badge';
+                        break;
+                    default:
+                        fileTypeBadge.className = 'badge bg-secondary file-type-badge';
+                }
+                
+                // Esconder todos os metadados específicos
+                document.getElementById('imageMetadata').style.display = 'none';
+                document.getElementById('documentMetadata').style.display = 'none';
+                document.getElementById('spreadsheetMetadata').style.display = 'none';
+                document.getElementById('pdfMetadata').style.display = 'none';
+                
+                // Mostrar metadados específicos com base no tipo de arquivo
+                if (data.file_type === 'image') {
+                    displayImageMetadata(data);
+                } else if (data.file_type === 'document') {
+                    displayDocumentMetadata(data);
+                } else if (data.file_type === 'spreadsheet' || data.file_type === 'csv') {
+                    displaySpreadsheetMetadata(data);
+                } else if (data.file_type === 'pdf') {
+                    displayPdfMetadata(data);
+                }
+                
+                // Configurar botão de exportação
+                document.getElementById('exportCsvBtn').addEventListener('click', function() {
+                    exportMetadataToCsv(data.file_type);
+                });
+                
+                // Configurar botão de nova análise
+                document.getElementById('newAnalysisBtn').addEventListener('click', function() {
+                    document.getElementById('metadataForm').reset();
+                    document.getElementById('metadataResults').style.display = 'none';
+                    document.getElementById('filePreview').style.display = 'none';
+                    document.getElementById('filePreviewPlaceholder').style.display = 'block';
+                });
+                
+                // Mostrar resultados
+                document.getElementById('metadataResults').style.display = 'block';
+            })
+            .catch(error => {
+                document.getElementById('metadataLoader').style.display = 'none';
+                alert('Erro ao processar requisição: ' + error);
+            });
+        });
+        
+        // Função para exibir metadados de imagem
+        function displayImageMetadata(data) {
+            document.getElementById('imageMetadata').style.display = 'block';
+            
+            // Preencher informações da imagem
+            const imageInfoTable = document.getElementById('imageInfoTable');
+            imageInfoTable.innerHTML = '';
+            
+            if (data.dimensions) {
+                addTableRow(imageInfoTable, 'Dimensões', `${data.dimensions.width || 'N/A'} x ${data.dimensions.height || 'N/A'} pixels`);
+            }
+            
+            addTableRow(imageInfoTable, 'Modo de Cor', data.color_mode || 'N/A');
+            addTableRow(imageInfoTable, 'Formato', data.format || 'N/A');
+            
+            // Preencher informações EXIF
+            const exifInfoTable = document.getElementById('exifInfoTable');
+            exifInfoTable.innerHTML = '';
+            
+            if (data.exif_data && Object.keys(data.exif_data).length > 0) {
+                // Selecionar tags EXIF mais importantes
+                const importantTags = [
+                    'Make', 'Model', 'DateTime', 'DateTimeOriginal', 'ExposureTime', 
+                    'FNumber', 'ISOSpeedRatings', 'FocalLength', 'Flash', 'Software'
+                ];
+                
+                // Adicionar tags importantes primeiro
+                importantTags.forEach(tag => {
+                    if (data.exif_data[tag]) {
+                        addTableRow(exifInfoTable, formatExifTag(tag), data.exif_data[tag]);
+                    }
+                });
+                
+                // Adicionar outras tags (limitando a quantidade)
+                let otherTagsCount = 0;
+                for (const tag in data.exif_data) {
+                    if (!importantTags.includes(tag) && otherTagsCount < 5) {
+                        addTableRow(exifInfoTable, formatExifTag(tag), data.exif_data[tag]);
+                        otherTagsCount++;
+                    }
+                }
+                
+                if (Object.keys(data.exif_data).length > importantTags.length + otherTagsCount) {
+                    addTableRow(exifInfoTable, 'Mais tags', `${Object.keys(data.exif_data).length - importantTags.length - otherTagsCount} tags adicionais não exibidas`);
+                }
+            } else {
+                addTableRow(exifInfoTable, 'Informações EXIF', 'Nenhuma informação EXIF encontrada');
+            }
+            
+            // Preencher informações GPS
+            const gpsInfoSection = document.getElementById('gpsInfoSection');
+            const gpsInfoTable = document.getElementById('gpsInfoTable');
+            const gpsMapLink = document.getElementById('gpsMapLink');
+            
+            if (data.gps_info && data.gps_info.latitude && data.gps_info.longitude) {
+                gpsInfoSection.style.display = 'block';
+                gpsInfoTable.innerHTML = '';
+                
+                addTableRow(gpsInfoTable, 'Latitude', data.gps_info.latitude);
+                addTableRow(gpsInfoTable, 'Longitude', data.gps_info.longitude);
+                
+                if (data.gps_info.GPSAltitude) {
+                    addTableRow(gpsInfoTable, 'Altitude', data.gps_info.GPSAltitude);
+                }
+                
+                if (data.gps_info.GPSDateStamp) {
+                    addTableRow(gpsInfoTable, 'Data GPS', data.gps_info.GPSDateStamp);
+                }
+                
+                // Configurar link para Google Maps
+                if (data.gps_info.google_maps_url) {
+                    gpsMapLink.href = data.gps_info.google_maps_url;
+                } else {
+                    gpsMapLink.href = `https://maps.google.com/maps?q=${data.gps_info.latitude},${data.gps_info.longitude}`;
+                }
+            } else {
+                gpsInfoSection.style.display = 'none';
+            }
+        }
+        
+        // Função para exibir metadados de documento
+        function displayDocumentMetadata(data) {
+            document.getElementById('documentMetadata').style.display = 'block';
+            
+            // Preencher propriedades do documento
+            const documentPropertiesTable = document.getElementById('documentPropertiesTable');
+            documentPropertiesTable.innerHTML = '';
+            
+            if (data.core_properties) {
+                const props = data.core_properties;
+                
+                addTableRow(documentPropertiesTable, 'Autor', props.author || 'N/A');
+                addTableRow(documentPropertiesTable, 'Título', props.title || 'N/A');
+                addTableRow(documentPropertiesTable, 'Assunto', props.subject || 'N/A');
+                addTableRow(documentPropertiesTable, 'Palavras-chave', props.keywords || 'N/A');
+                addTableRow(documentPropertiesTable, 'Criado em', formatDate(props.created) || 'N/A');
+                addTableRow(documentPropertiesTable, 'Modificado em', formatDate(props.modified) || 'N/A');
+                addTableRow(documentPropertiesTable, 'Última modificação por', props.last_modified_by || 'N/A');
+                addTableRow(documentPropertiesTable, 'Revisão', props.revision || 'N/A');
+            } else {
+                addTableRow(documentPropertiesTable, 'Propriedades', 'Nenhuma propriedade encontrada');
+            }
+            
+            // Preencher estatísticas do documento
+            const documentStatsTable = document.getElementById('documentStatsTable');
+            documentStatsTable.innerHTML = '';
+            
+            if (data.statistics) {
+                const stats = data.statistics;
+                
+                addTableRow(documentStatsTable, 'Parágrafos', stats.paragraphs_count || 'N/A');
+                addTableRow(documentStatsTable, 'Palavras', stats.words_count || 'N/A');
+                addTableRow(documentStatsTable, 'Tabelas', stats.tables_count || 'N/A');
+                addTableRow(documentStatsTable, 'Seções', stats.sections_count || 'N/A');
+            } else {
+                addTableRow(documentStatsTable, 'Estatísticas', 'Nenhuma estatística encontrada');
+            }
+        }
+        
+        // Função para exibir metadados de planilha
+        function displaySpreadsheetMetadata(data) {
+            document.getElementById('spreadsheetMetadata').style.display = 'block';
+            
+            // Preencher propriedades da planilha
+            const spreadsheetPropertiesTable = document.getElementById('spreadsheetPropertiesTable');
+            spreadsheetPropertiesTable.innerHTML = '';
+            
+            if (data.properties) {
+                const props = data.properties;
+                
+                addTableRow(spreadsheetPropertiesTable, 'Autor', props.creator || 'N/A');
+                addTableRow(spreadsheetPropertiesTable, 'Última modificação por', props.lastModifiedBy || 'N/A');
+                addTableRow(spreadsheetPropertiesTable, 'Criado em', formatDate(props.created) || 'N/A');
+                addTableRow(spreadsheetPropertiesTable, 'Modificado em', formatDate(props.modified) || 'N/A');
+                addTableRow(spreadsheetPropertiesTable, 'Título', props.title || 'N/A');
+                addTableRow(spreadsheetPropertiesTable, 'Assunto', props.subject || 'N/A');
+                addTableRow(spreadsheetPropertiesTable, 'Empresa', props.company || 'N/A');
+            } else {
+                addTableRow(spreadsheetPropertiesTable, 'Propriedades', 'Nenhuma propriedade encontrada');
+            }
+            
+            // Preencher informações das planilhas
+            const sheetsInfoContainer = document.getElementById('sheetsInfoContainer');
+            sheetsInfoContainer.innerHTML = '';
+            
+            if (data.sheets && data.sheets.length > 0) {
+                addTableRow(spreadsheetPropertiesTable, 'Total de Planilhas', data.sheet_count || data.sheets.length);
+                
+                // Criar tabela para informações das planilhas
+                const table = document.createElement('table');
+                table.className = 'table table-striped';
+                
+                // Cabeçalho da tabela
+                const thead = document.createElement('thead');
+                thead.innerHTML = `
+                    <tr>
+                        <th>Nome</th>
+                        <th>Linhas</th>
+                        <th>Colunas</th>
+                    </tr>
+                `;
+                table.appendChild(thead);
+                
+                // Corpo da tabela
+                const tbody = document.createElement('tbody');
+                
+                data.sheets.forEach(sheet => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${sheet.name}</td>
+                        <td>${sheet.rows}</td>
+                        <td>${sheet.columns}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+                table.appendChild(tbody);
+                sheetsInfoContainer.appendChild(table);
+            } else {
+                sheetsInfoContainer.innerHTML = '<p>Nenhuma informação de planilha encontrada</p>';
+            }
+        }
+        
+        // Função para exibir metadados de PDF
+        function displayPdfMetadata(data) {
+            document.getElementById('pdfMetadata').style.display = 'block';
+            
+            // Preencher propriedades do PDF
+            const pdfPropertiesTable = document.getElementById('pdfPropertiesTable');
+            pdfPropertiesTable.innerHTML = '';
+            
+            if (data.metadata && Object.keys(data.metadata).length > 0) {
+                const meta = data.metadata;
+                
+                addTableRow(pdfPropertiesTable, 'Autor', meta.Author || 'N/A');
+                addTableRow(pdfPropertiesTable, 'Criador', meta.Creator || 'N/A');
+                addTableRow(pdfPropertiesTable, 'Produtor', meta.Producer || 'N/A');
+                addTableRow(pdfPropertiesTable, 'Título', meta.Title || 'N/A');
+                addTableRow(pdfPropertiesTable, 'Assunto', meta.Subject || 'N/A');
+                addTableRow(pdfPropertiesTable, 'Palavras-chave', meta.Keywords || 'N/A');
+                
+                if (meta.CreationDate) {
+                    addTableRow(pdfPropertiesTable, 'Data de Criação', formatPdfDate(meta.CreationDate) || meta.CreationDate);
+                }
+                
+                if (meta.ModDate) {
+                    addTableRow(pdfPropertiesTable, 'Data de Modificação', formatPdfDate(meta.ModDate) || meta.ModDate);
+                }
+            } else {
+                addTableRow(pdfPropertiesTable, 'Propriedades', 'Nenhuma propriedade encontrada');
+            }
+            
+            // Preencher informações adicionais
+            const pdfInfoTable = document.getElementById('pdfInfoTable');
+            pdfInfoTable.innerHTML = '';
+            
+            addTableRow(pdfInfoTable, 'Número de Páginas', data.page_count || 'N/A');
+            addTableRow(pdfInfoTable, 'Criptografado', data.is_encrypted ? 'Sim' : 'Não');
+            
+            if (data.page_sizes && data.page_sizes.length > 0) {
+                addTableRow(pdfInfoTable, 'Tamanho da Página', data.page_sizes[0]);
+                
+                if (data.page_sizes.length > 1 && data.page_sizes[0] !== data.page_sizes[1]) {
+                    addTableRow(pdfInfoTable, 'Observação', 'Documento contém páginas de tamanhos diferentes');
+                }
+            }
+        }
+        
+        // Função para exportar metadados para CSV
+        function exportMetadataToCsv(fileType) {
+            // Fazer requisição para exportar
+            const formData = new FormData();
+            formData.append('file_type', fileType || 'others');
+            
+            fetch('/api/metadata_analysis/export_csv', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Erro: ' + data.error);
+                    return;
+                }
+                
+                if (data.csv_file) {
+                    // Iniciar download do arquivo
+                    window.location.href = '/download/' + data.csv_file;
+                } else {
+                    alert('Não foi possível gerar o arquivo CSV');
+                }
+            })
+            .catch(error => {
+                alert('Erro ao exportar para CSV: ' + error);
+            });
+        }
+        
+        // Função auxiliar para adicionar linha à tabela
+        function addTableRow(table, label, value) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <th scope="row">${label}</th>
+                <td>${value}</td>
+            `;
+            table.appendChild(tr);
+        }
+        
+        // Função auxiliar para formatar data
+        function formatDate(dateStr) {
+            if (!dateStr) return null;
+            
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+            } catch (e) {
+                return dateStr;
+            }
+        }
+        
+        // Função auxiliar para formatar data de PDF
+        function formatPdfDate(pdfDate) {
+            if (!pdfDate) return null;
+            
+            // Formato típico: D:20200131235959+00'00'
+            try {
+                if (pdfDate.startsWith('D:')) {
+                    const year = pdfDate.substring(2, 6);
+                    const month = pdfDate.substring(6, 8);
+                    const day = pdfDate.substring(8, 10);
+                    const hour = pdfDate.substring(10, 12);
+                    const minute = pdfDate.substring(12, 14);
+                    const second = pdfDate.substring(14, 16);
+                    
+                    return `${day}/${month}/${year} ${hour}:${minute}:${second}`;
+                }
+                return null;
+            } catch (e) {
+                return null;
+            }
+        }
+        
+        // Função auxiliar para formatar tags EXIF
+        function formatExifTag(tag) {
+            // Converter CamelCase para espaços
+            return tag.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        }
+    </script>
+</body>
+</html>
