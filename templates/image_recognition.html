@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferramenta OSINT - Reconhecimento de Imagens</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            padding-top: 60px;
+            background-color: #f8f9fa;
+        }
+        .card {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: #343a40;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        .image-icon {
+            font-size: 2rem;
+            margin-right: 10px;
+        }
+        .face-color {
+            color: #FF5722;
+        }
+        .object-color {
+            color: #2196F3;
+        }
+        .color-analysis-color {
+            color: #4CAF50;
+        }
+        .compare-color {
+            color: #9C27B0;
+        }
+        .result-container {
+            display: none;
+            margin-top: 20px;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #343a40;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        footer {
+            margin-top: 50px;
+            padding: 20px 0;
+            background-color: #343a40;
+            color: white;
+        }
+        .result-image {
+            max-width: 100%;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .color-box {
+            width: 30px;
+            height: 30px;
+            display: inline-block;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .confidence-high {
+            color: #4CAF50;
+        }
+        .confidence-medium {
+            color: #FF9800;
+        }
+        .confidence-low {
+            color: #F44336;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">Ferramenta OSINT</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Início</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/social_media">Redes Sociais</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/contact_info">E-mails e Contatos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/image_recognition">Reconhecimento de Imagens</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/metadata_analysis">Análise de Metadados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">Sobre</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <div class="container">
+        <h1 class="mb-4">Reconhecimento de Imagens</h1>
+        <p class="lead">Utilize este módulo para analisar e extrair informações de imagens.</p>
+
+        <!-- Abas para diferentes tipos de análise -->
+        <ul class="nav nav-tabs" id="imageTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="face-tab" data-bs-toggle="tab" data-bs-target="#face" type="button" role="tab" aria-controls="face" aria-selected="true">
+                    <i class="fas fa-user face-color"></i> Detecção de Faces
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="object-tab" data-bs-toggle="tab" data-bs-target="#object" type="button" role="tab" aria-controls="object" aria-selected="false">
+                    <i class="fas fa-cube object-color"></i> Detecção de Objetos
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="color-tab" data-bs-toggle="tab" data-bs-target="#color" type="button" role="tab" aria-controls="color" aria-selected="false">
+                    <i class="fas fa-palette color-analysis-color"></i> Análise de Cores
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="compare-tab" data-bs-toggle="tab" data-bs-target="#compare" type="button" role="tab" aria-controls="compare" aria-selected="false">
+                    <i class="fas fa-not-equal compare-color"></i> Comparação de Faces
+                </button>
+            </li>
+        </ul>
+
+        <!-- Conteúdo das abas -->
+        <div class="tab-content" id="imageTabsContent">
+            <!-- Detecção de Faces -->
+            <div class="tab-pane fade show active" id="face" role="tabpanel" aria-labelledby="face-tab">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Detecção de Faces em Imagens</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="faceForm" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="faceImage" class="form-label">Selecione uma imagem</label>
+                                <input type="file" class="form-control" id="faceImage" name="image" accept="image/*" required>
+                                <div class="form-text">Formatos suportados: JPG, PNG, BMP</div>
+                                <img id="facePreview" class="image-preview" alt="Pré-visualização da imagem">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Analisar</button>
+                        </form>
+
+                        <!-- Loader -->
+                        <div id="faceLoader" class="loader"></div>
+
+                        <!-- Resultados -->
+                        <div id="faceResults" class="result-container">
+                            <h4 class="mt-4">Resultados</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">Imagem Analisada</h5>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <img id="faceResultImage" class="result-image" src="" alt="Imagem com faces detectadas">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">Informações Detectadas</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="faceInfo">
+                                                <p id="facesCount"></p>
+                                                <div id="facesDetails"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detecção de Objetos -->
+            <div class="tab-pane fade" id="object" role="tabpanel" aria-labelledby="object-tab">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Detecção de Objetos em Imagens</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="objectForm" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="objectImage" class="form-label">Selecione uma imagem</label>
+                                <input type="file" class="form-control" id="objectImage" name="image" accept="image/*" required>
+                                <div class="form-text">Formatos suportados: JPG, PNG, BMP</div>
+                                <img id="objectPreview" class="image-preview" alt="Pré-visualização da imagem">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Analisar</button>
+                        </form>
+
+                        <!-- Loader -->
+                        <div id="objectLoader" class="loader"></div>
+
+                        <!-- Resultados -->
+                        <div id="objectResults" class="result-container">
+                            <h4 class="mt-4">Resultados</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">Imagem Analisada</h5>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <img id="objectResultImage" class="result-image" src="" alt="Imagem com objetos detectados">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">Objetos Detectados</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="objectInfo">
+                                                <p id="objectsCount"></p>
+                                                <div id="objectsList"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análise de Cores -->
+            <div class="tab-pane fade" id="color" role="tabpanel" aria-labelledby="color-tab">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Análise de Cores em Imagens</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="colorForm" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="colorImage" class="form-label">Selecione uma imagem</label>
+                                <input type="file" class="form-control" id="colorImage" name="image" accept="image/*" required>
+                                <div class="form-text">Formatos suportados: JPG, PNG, BMP</div>
+                                <img id="colorPreview" class="image-preview" alt="Pré-visualização da imagem">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Analisar</button>
+                        </form>
+
+                        <!-- Loader -->
+                        <div id="colorLoader" class="loader"></div>
+
+                        <!-- Resultados -->
+                        <div id="colorResults" class="result-container">
+                            <h4 class="mt-4">Resultados</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">Imagem Original</h5>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <img id="colorOriginalImage" class="result-image" src="" alt="Imagem original">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">Cores Dominantes</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="colorInfo">
+                                                <div id="dominantColors"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Estatísticas de Cores</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Distribuição de Cores</h6>
+                                            <div id="colorDistribution"></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Informações Adicionais</h6>
+                                            <div id="colorStats"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparação de Faces -->
+            <div class="tab-pane fade" id="compare" role="tabpanel" aria-labelledby="compare-tab">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Comparação de Faces em Imagens</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="compareForm" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="compareImage1" class="form-label">Imagem 1</label>
+                                        <input type="file" class="form-control" id="compareImage1" name="image1" accept="image/*" required>
+                                        <div class="form-text">Formatos suportados: JPG, PNG, BMP</div>
+                                        <img id="comparePreview1" class="image-preview" alt="Pré-visualização da imagem 1">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="compareImage2" class="form-label">Imagem 2</label>
+                                        <input type="file" class="form-control" id="compareImage2" name="image2" accept="image/*" required>
+                                        <div class="form-text">Formatos suportados: JPG, PNG, BMP</div>
+                                        <img id="comparePreview2" class="image-preview" alt="Pré-visualização da imagem 2">
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Comparar</button>
+                        </form>
+
+                        <!-- Loader -->
+                        <div id="compareLoader" class="loader"></div>
+
+                        <!-- Resultados -->
+                        <div id="compareResults" class="result-container">
+                            <h4 class="mt-4">Resultados da Comparação</h4>
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">Imagem 1</h5>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <img id="compareResultImage1" class="result-image" src="" alt="Imagem 1">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-center justify-content-center">
+                                    <div id="compareResultIcon" class="text-center">
+                                        <i class="fas fa-question-circle fa-4x text-secondary"></i>
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">Imagem 2</h5>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <img id="compareResultImage2" class="result-image" src="" alt="Imagem 2">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Resultado da Comparação</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <h4 id="compareResultText"></h4>
+                                    <div id="compareResultDetails" class="mt-3"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center">
+        <div class="container">
+            <p>&copy; 2025 Ferramenta OSINT - Todos os direitos reservados</p>
+            <p>Desenvolvido para fins educacionais e de pesquisa</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Função para mostrar pré-visualização da imagem
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+        
+        // Configurar pré-visualizações de imagem
+        document.getElementById('faceImage').addEventListener('change', function() {
+            previewImage(this, 'facePreview');
+        });
+        
+        document.getElementById('objectImage').addEventListener('change', function() {
+            previewImage(this, 'objectPreview');
+        });
+        
+        document.getElementById('colorImage').addEventListener('change', function() {
+            previewImage(this, 'colorPreview');
+        });
+        
+        document.getElementById('compareImage1').addEventListener('change', function() {
+            previewImage(this, 'comparePreview1');
+        });
+        
+        document.getElementById('compareImage2').addEventListener('change', function() {
+            previewImage(this, 'comparePreview2');
+        });
+        
+        // Detecção de Faces
+        document.getElementById('faceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Mostrar loader
+            document.getElementById('faceLoader').style.display = 'block';
+            document.getElementById('faceResults').style.display = 'none';
+            
+            // Obter dados do formulário
+            const formData = new FormData(this);
+            
+            // Enviar requisição
+            fetch('/api/image_recognition/detect_faces', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Esconder loader
+                document.getElementById('faceLoader').style.display = 'none';
+                
+                if (data.error) {
+                    alert('Erro: ' + data.error);
+                    return;
+                }
+                
+                // Exibir imagem resultante
+                if (data.display_image) {
+                    document.getElementById('faceResultImage').src = '/view_image/' + data.display_image;
+                } else if (data.result_image) {
+                    document.getElementById('faceResultImage').src = '/view_image/' + data.result_image;
+                }
+                
+                // Exibir informações das faces
+                const facesCount = document.getElementById('facesCount');
+                const facesDetails = document.getElementById('facesDetails');
+                
+                if (data.faces_detected && data.faces_detected.length > 0) {
+                    const count = data.faces_detected.length;
+                    facesCount.textContent = `${count} face${count > 1 ? 's' : ''} detectada${count > 1 ? 's' : ''}.`;
+                    
+                    // Limpar detalhes anteriores
+                    facesDetails.innerHTML = '';
+                    
+                    // Adicionar detalhes de cada face
+                    data.faces_detected.forEach((face, index) => {
+                        const faceDiv = document.createElement('div');
+                        faceDiv.className = 'card mb-2';
+                        
+                        let faceContent = `<div class="card-body">
+                            <h6>Face ${index + 1}</h6>
+                            <ul class="list-group list-group-flush">`;
+                        
+                        if (face.gender) {
+                            faceContent += `<li class="list-group-item">Gênero: ${face.gender}</li>`;
+                        }
+                        
+                        if (face.age) {
+                            faceContent += `<li class="list-group-item">Idade aproximada: ${face.age}</li>`;
+                        }
+                        
+                        if (face.emotion) {
+                            faceContent += `<li class="list-group-item">Emoção: ${face.emotion}</li>`;
+                        }
+                        
+                        if (face.location) {
+                            faceContent += `<li class="list-group-item">Localização: (${face.location.x}, ${face.location.y})</li>`;
+                        }
+                        
+                        faceContent += `</ul></div>`;
+                        faceDiv.innerHTML = faceContent;
+                        
+                        facesDetails.appendChild(faceDiv);
+                    });
+                } else {
+                    facesCount.textContent = 'Nenhuma face detectada.';
+                    facesDetails.innerHTML = '';
+                }
+                
+                // Mostrar resultados
+                document.getElementById('faceResults').style.display = 'block';
+            })
+            .catch(error => {
+                document.getElementById('faceLoader').style.display = 'none';
+                alert('Erro ao processar requisição: ' + error);
+            });
+        });
+        
+        // Detecção de Objetos
+        document.getElementById('objectForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Mostrar loader
+            document.getElementById('objectLoader').style.display = 'block';
+            document.getElementById('objectResults').style.display = 'none';
+            
+            // Obter dados do formulário
+            const formData = new FormData(this);
+            
+            // Enviar requisição
+            fetch('/api/image_recognition/detect_objects', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Esconder loader
+                document.getElementById('objectLoader').style.display = 'none';
+                
+                if (data.error) {
+                    alert('Erro: ' + data.error);
+                    return;
+                }
+                
+                // Exibir imagem resultante
+                if (data.display_image) {
+                    document.getElementById('objectResultImage').src = '/view_image/' + data.display_image;
+                } else if (data.result_image) {
+                    document.getElementById('objectResultImage').src = '/view_image/' + data.result_image;
+                }
+                
+                // Exibir informações dos objetos
+                const objectsCount = document.getElementById('objectsCount');
+                const objectsList = document.getElementById('objectsList');
+                
+                if (data.objects_detected && data.objects_detected.length > 0) {
+                    const count = data.objects_detected.length;
+                    objectsCount.textContent = `${count} objeto${count > 1 ? 's' : ''} detectado${count > 1 ? 's' : ''}.`;
+                    
+                    // Limpar lista anterior
+                    objectsList.innerHTML = '';
+                    
+                    // Criar tabela de objetos
+                    const table = document.createElement('table');
+                    table.className = 'table table-striped';
+                    
+                    // Cabeçalho da tabela
+                    const thead = document.createElement('thead');
+                    thead.innerHTML = `
+                        <tr>
+                            <th>Objeto</th>
+                            <th>Confiança</th>
+                        </tr>
+                    `;
+                    table.appendChild(thead);
+                    
+                    // Corpo da tabela
+                    const tbody = document.createElement('tbody');
+                    
+                    data.objects_detected.forEach(obj => {
+                        const tr = document.createElement('tr');
+                        
+                        // Determinar classe de confiança
+                        let confidenceClass = '';
+                        if (obj.confidence >= 0.7) {
+                            confidenceClass = 'confidence-high';
+                        } else if (obj.confidence >= 0.4) {
+                            confidenceClass = 'confidence-medium';
+                        } else {
+                            confidenceClass = 'confidence-low';
+                        }
+                        
+                        tr.innerHTML = `
+                            <td>${obj.name}</td>
+                            <td><span class="${confidenceClass}">${Math.round(obj.confidence * 100)}%</span></td>
+                        `;
+                        
+                        tbody.appendChild(tr);
+                    });
+                    
+                    table.appendChild(tbody);
+                    objectsList.appendChild(table);
+                } else {
+                    objectsCount.textContent = 'Nenhum objeto detectado.';
+                    objectsList.innerHTML = '';
+                }
+                
+                // Mostrar resultados
+                document.getElementById('objectResults').style.display = 'block';
+            })
+            .catch(error => {
+                document.getElementById('objectLoader').style.display = 'none';
+                alert('Erro ao processar requisição: ' + error);
+            });
+        });
+        
+        // Análise de Cores
+        document.getElementById('colorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Mostrar loader
+            document.getElementById('colorLoader').style.display = 'block';
+            document.getElementById('colorResults').style.display = 'none';
+            
+            // Obter dados do formulário
+            const formData = new FormData(this);
+            
+            // Enviar requisição
+            fetch('/api/image_recognition/analyze_colors', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Esconder loader
+                document.getElementById('colorLoader').style.display = 'none';
+                
+                if (data.error) {
+                    alert('Erro: ' + data.error);
+                    return;
+                }
+                
+                // Exibir imagem original
+                if (data.original_image) {
+                    document.getElementById('colorOriginalImage').src = '/view_image/' + data.original_image;
+                }
+                
+                // Exibir cores dominantes
+                const dominantColors = document.getElementById('dominantColors');
+                dominantColors.innerHTML = '';
+                
+                if (data.dominant_colors && data.dominant_colors.length > 0) {
+                    const colorsList = document.createElement('div');
+                    colorsList.className = 'list-group';
+                    
+                    data.dominant_colors.forEach(color => {
+                        const colorItem = document.createElement('div');
+                        colorItem.className = 'list-group-item d-flex align-items-center';
+                        
+                        const colorBox = document.createElement('div');
+                        colorBox.className = 'color-box';
+                        colorBox.style.backgroundColor = color.hex;
+                        
+                        const colorInfo = document.createElement('div');
+                        colorInfo.innerHTML = `
+                            <div>${color.hex}</div>
+                            <small class="text-muted">RGB: ${color.rgb.join(', ')}</small>
+                            <small class="text-muted">Porcentagem: ${color.percentage.toFixed(2)}%</small>
+                        `;
+                        
+                        colorItem.appendChild(colorBox);
+                        colorItem.appendChild(colorInfo);
+                        colorsList.appendChild(colorItem);
+                    });
+                    
+                    dominantColors.appendChild(colorsList);
+                } else {
+                    dominantColors.textContent = 'Não foi possível determinar as cores dominantes.';
+                }
+                
+                // Exibir distribuição de cores
+                const colorDistribution = document.getElementById('colorDistribution');
+                colorDistribution.innerHTML = '';
+                
+                if (data.color_distribution) {
+                    const dist = data.color_distribution;
+                    
+                    const table = document.createElement('table');
+                    table.className = 'table';
+                    
+                    const tbody = document.createElement('tbody');
+                    
+                    // Adicionar cada canal de cor
+                    for (const channel in dist) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <th>${channel.toUpperCase()}</th>
+                            <td>${dist[channel].mean.toFixed(2)}</td>
+                            <td>${dist[channel].min} - ${dist[channel].max}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                    
+                    table.appendChild(tbody);
+                    colorDistribution.appendChild(table);
+                }
+                
+                // Exibir estatísticas adicionais
+                const colorStats = document.getElementById('colorStats');
+                colorStats.innerHTML = '';
+                
+                if (data.image_stats) {
+                    const stats = data.image_stats;
+                    
+                    const statsList = document.createElement('ul');
+                    statsList.className = 'list-group';
+                    
+                    // Adicionar cada estatística
+                    if (stats.brightness) {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item';
+                        li.innerHTML = `Brilho: ${stats.brightness.toFixed(2)}`;
+                        statsList.appendChild(li);
+                    }
+                    
+                    if (stats.contrast) {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item';
+                        li.innerHTML = `Contraste: ${stats.contrast.toFixed(2)}`;
+                        statsList.appendChild(li);
+                    }
+                    
+                    if (stats.saturation) {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item';
+                        li.innerHTML = `Saturação: ${stats.saturation.toFixed(2)}`;
+                        statsList.appendChild(li);
+                    }
+                    
+                    colorStats.appendChild(statsList);
+                }
+                
+                // Mostrar resultados
+                document.getElementById('colorResults').style.display = 'block';
+            })
+            .catch(error => {
+                document.getElementById('colorLoader').style.display = 'none';
+                alert('Erro ao processar requisição: ' + error);
+            });
+        });
+        
+        // Comparação de Faces
+        document.getElementById('compareForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Mostrar loader
+            document.getElementById('compareLoader').style.display = 'block';
+            document.getElementById('compareResults').style.display = 'none';
+            
+            // Obter dados do formulário
+            const formData = new FormData(this);
+            
+            // Enviar requisição
+            fetch('/api/image_recognition/compare_faces', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Esconder loader
+                document.getElementById('compareLoader').style.display = 'none';
+                
+                if (data.error) {
+                    alert('Erro: ' + data.error);
+                    return;
+                }
+                
+                // Exibir imagens
+                if (data.image1_path) {
+                    document.getElementById('compareResultImage1').src = '/view_image/' + data.image1_path;
+                }
+                
+                if (data.image2_path) {
+                    document.getElementById('compareResultImage2').src = '/view_image/' + data.image2_path;
+                }
+                
+                // Exibir resultado da comparação
+                const compareResultText = document.getElementById('compareResultText');
+                const compareResultDetails = document.getElementById('compareResultDetails');
+                const compareResultIcon = document.getElementById('compareResultIcon');
+                
+                // Limpar conteúdo anterior
+                compareResultDetails.innerHTML = '';
+                
+                if (data.match !== undefined) {
+                    if (data.match) {
+                        compareResultText.textContent = 'As faces correspondem à mesma pessoa';
+                        compareResultText.className = 'text-success';
+                        compareResultIcon.innerHTML = '<i class="fas fa-check-circle fa-4x text-success"></i>';
+                    } else {
+                        compareResultText.textContent = 'As faces não correspondem à mesma pessoa';
+                        compareResultText.className = 'text-danger';
+                        compareResultIcon.innerHTML = '<i class="fas fa-times-circle fa-4x text-danger"></i>';
+                    }
+                    
+                    // Adicionar detalhes da comparação
+                    if (data.similarity !== undefined) {
+                        const similarityDiv = document.createElement('div');
+                        similarityDiv.className = 'alert alert-info';
+                        similarityDiv.innerHTML = `Similaridade: ${(data.similarity * 100).toFixed(2)}%`;
+                        compareResultDetails.appendChild(similarityDiv);
+                    }
+                    
+                    if (data.threshold !== undefined) {
+                        const thresholdDiv = document.createElement('div');
+                        thresholdDiv.className = 'alert alert-secondary';
+                        thresholdDiv.innerHTML = `Limiar de correspondência: ${(data.threshold * 100).toFixed(2)}%`;
+                        compareResultDetails.appendChild(thresholdDiv);
+                    }
+                } else if (data.error_details) {
+                    compareResultText.textContent = 'Não foi possível comparar as faces';
+                    compareResultText.className = 'text-warning';
+                    compareResultIcon.innerHTML = '<i class="fas fa-exclamation-triangle fa-4x text-warning"></i>';
+                    
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'alert alert-warning';
+                    errorDiv.textContent = data.error_details;
+                    compareResultDetails.appendChild(errorDiv);
+                } else {
+                    compareResultText.textContent = 'Resultado indeterminado';
+                    compareResultText.className = 'text-secondary';
+                    compareResultIcon.innerHTML = '<i class="fas fa-question-circle fa-4x text-secondary"></i>';
+                }
+                
+                // Mostrar resultados
+                document.getElementById('compareResults').style.display = 'block';
+            })
+            .catch(error => {
+                document.getElementById('compareLoader').style.display = 'none';
+                alert('Erro ao processar requisição: ' + error);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferramenta OSINT - Redes Sociais</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            padding-top: 60px;
+            background-color: #f8f9fa;
+        }
+        .card {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: #343a40;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        .network-icon {
+            font-size: 2rem;
+            margin-right: 10px;
+        }
+        .twitter-color {
+            color: #1DA1F2;
+        }
+        .instagram-color {
+            color: #E1306C;
+        }
+        .facebook-color {
+            color: #4267B2;
+        }
+        .result-container {
+            display: none;
+            margin-top: 20px;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #343a40;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        footer {
+            margin-top: 50px;
+            padding: 20px 0;
+            background-color: #343a40;
+            color: white;
+        }
+        .profile-image {
+            max-width: 100px;
+            border-radius: 50%;
+        }
+        .connection-graph {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">Ferramenta OSINT</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Início</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/social_media">Redes Sociais</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/contact_info">E-mails e Contatos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/image_recognition">Reconhecimento de Imagens</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/metadata_analysis">Análise de Metadados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">Sobre</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <div class="container">
+        <h1 class="mb-4">Busca em Redes Sociais</h1>
+        <p class="lead">Utilize este módulo para coletar informações de perfis em diferentes redes sociais.</p>
+
+        <!-- Abas para diferentes redes sociais -->
+        <ul class="nav nav-tabs" id="socialTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="twitter-tab" data-bs-toggle="tab" data-bs-target="#twitter" type="button" role="tab" aria-controls="twitter" aria-selected="true">
+                    <i class="fab fa-twitter twitter-color"></i> Twitter
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="instagram-tab" data-bs-toggle="tab" data-bs-target="#instagram" type="button" role="tab" aria-controls="instagram" aria-selected="false">
+                    <i class="fab fa-instagram instagram-color"></i> Instagram
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="facebook-tab" data-bs-toggle="tab" data-bs-target="#facebook" type="button" role="tab" aria-controls="facebook" aria-selected="false">
+                    <i class="fab fa-facebook facebook-color"></i> Facebook
+                </button>
+            </li>
+        </ul>
+
+        <!-- Conteúdo das abas -->
+        <div class="tab-content" id="socialTabsContent">
+            <!-- Twitter -->
+            <div class="tab-pane fade show active" id="twitter" role="tabpanel" aria-labelledby="twitter-tab">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Busca no Twitter</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="twitterForm">
+                            <div class="mb-3">
+                                <label for="twitterUsername" class="form-label">Nome de usuário</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">@</span>
+                                    <input type="text" class="form-control" id="twitterUsername" name="username" placeholder="exemplo" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="twitterMaxTweets" class="form-label">Número máximo de tweets</label>
+                                <input type="number" class="form-control" id="twitterMaxTweets" name="max_tweets" value="100" min="1" max="500">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Buscar</button>
+                        </form>
+
+                        <!-- Loader -->
+                        <div id="twitterLoader" class="loader"></div>
+
+                        <!-- Resultados -->
+                        <div id="twitterResults" class="result-container">
+                            <h4 class="mt-4">Resultados</h4>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">Perfil</h5>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <img id="twitterProfileImage" src="" alt="Foto de perfil" class="profile-image mb-3">
+                                            <h5 id="twitterName"></h5>
+                                            <p id="twitterScreenName" class="text-muted"></p>
+                                            <p id="twitterDescription"></p>
+                                            <div class="row text-center">
+                                                <div class="col">
+                                                    <h6>Seguidores</h6>
+                                                    <p id="twitterFollowers"></p>
+                                                </div>
+                                                <div class="col">
+                                                    <h6>Seguindo</h6>
+                                                    <p id="twitterFollowing"></p>
+                                                </div>
+                                                <div class="col">
+                                                    <h6>Tweets</h6>
+                                                    <p id="twitterTweetsCount"></p>
+                                                </div>
+                                            </div>
+                                            <p id="twitterLocation" class="mt-2"></p>
+                                            <p id="twitterCreatedAt" class="text-muted"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">Tweets Recentes</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="twitterTweets" class="list-group"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Visualização de Conexões -->
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Visualização de Conexões</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <button id="twitterVisualizeBtn" class="btn btn-primary mb-3">Gerar Visualização</button>
+                                    <div id="twitterVisualization">
+                                        <img id="twitterConnectionGraph" class="connection-graph" src="" alt="Grafo de conexões">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instagram -->
+            <div class="tab-pane fade" id="instagram" role="tabpanel" aria-labelledby="instagram-tab">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Busca no Instagram</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="instagramForm">
+                            <div class="mb-3">
+                                <label for="instagramUsername" class="form-label">Nome de usuário</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">@</span>
+                                    <input type="text" class="form-control" id="instagramUsername" name="username" placeholder="exemplo" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="instagramMaxPosts" class="form-label">Número máximo de posts</label>
+                                <input type="number" class="form-control" id="instagramMaxPosts" name="max_posts" value="20" min="1" max="100">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Buscar</button>
+                        </form>
+
+                        <!-- Loader -->
+                        <div id="instagramLoader" class="loader"></div>
+
+                        <!-- Resultados -->
+                        <div id="instagramResults" class="result-container">
+                            <h4 class="mt-4">Resultados</h4>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">Perfil</h5>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <img id="instagramProfileImage" src="" alt="Foto de perfil" class="profile-image mb-3">
+                                            <h5 id="instagramFullName"></h5>
+                                            <p id="instagramUsername" class="text-muted"></p>
+                                            <p id="instagramBiography"></p>
+                                            <div class="row text-center">
+                                                <div class="col">
+                                                    <h6>Seguidores</h6>
+                                                    <p id="instagramFollowers"></p>
+                                                </div>
+                                                <div class="col">
+                                                    <h6>Seguindo</h6>
+                                                    <p id="instagramFollowing"></p>
+                                                </div>
+                                                <div class="col">
+                                                    <h6>Posts</h6>
+                                                    <p id="instagramMediaCount"></p>
+                                                </div>
+                                            </div>
+                                            <p id="instagramExternalUrl" class="mt-2"></p>
+                                            <div id="instagramVerified"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">Posts Recentes</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="instagramPosts" class="list-group"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Visualização de Conexões -->
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Visualização de Conexões</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <button id="instagramVisualizeBtn" class="btn btn-primary mb-3">Gerar Visualização</button>
+                                    <div id="instagramVisualization">
+                                        <img id="instagramConnectionGraph" class="connection-graph" src="" alt="Grafo de conexões">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Facebook -->
+            <div class="tab-pane fade" id="facebook" role="tabpanel" aria-labelledby="facebook-tab">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Busca no Facebook</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="facebookForm">
+                            <div class="mb-3">
+                                <label for="facebookUsername" class="form-label">Nome de usuário ou ID</label>
+                                <input type="text" class="form-control" id="facebookUsername" name="username" placeholder="exemplo" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="facebookMaxPosts" class="form-label">Número máximo de posts</label>
+                                <input type="number" class="form-control" id="facebookMaxPosts" name="max_posts" value="20" min="1" max="100">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Buscar</button>
+                        </form>
+
+                        <!-- Loader -->
+                        <div id="facebookLoader" class="loader"></div>
+
+                        <!-- Resultados -->
+                        <div id="facebookResults" class="result-container">
+                            <h4 class="mt-4">Resultados</h4>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">Perfil</h5>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <img id="facebookProfileImage" src="" alt="Foto de perfil" class="profile-image mb-3">
+                                            <h5 id="facebookName"></h5>
+                                            <p id="facebookUsername" class="text-muted"></p>
+                                            <div class="row text-center">
+                                                <div class="col">
+                                                    <h6>Seguidores</h6>
+                                                    <p id="facebookFollowers"></p>
+                                                </div>
+                                                <div class="col">
+                                                    <h6>Seguindo</h6>
+                                                    <p id="facebookFollowing"></p>
+                                                </div>
+                                                <div class="col">
+                                                    <h6>Amigos</h6>
+                                                    <p id="facebookFriends"></p>
+                                                </div>
+                                            </div>
+                                            <p id="facebookLocation" class="mt-2"></p>
+                                            <p id="facebookWork" class="text-muted"></p>
+                                            <p id="facebookEducation" class="text-muted"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">Posts Recentes</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="facebookPosts" class="list-group"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Visualização de Conexões -->
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Visualização de Conexões</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <button id="facebookVisualizeBtn" class="btn btn-primary mb-3">Gerar Visualização</button>
+                                    <div id="facebookVisualization">
+                                        <img id="facebookConnectionGraph" class="connection-graph" src="" alt="Grafo de conexões">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center">
+        <div class="container">
+            <p>&copy; 2025 Ferramenta OSINT - Todos os direitos reservados</p>
+            <p>Desenvolvido para fins educacionais e de pesquisa</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Twitter Form
+        document.getElementById('twitterForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('twitterUsername').value;
+            const maxTweets = document.getElementById('twitterMaxTweets').value;
+            
+            // Mostrar loader
+            document.getElementById('twitterLoader').style.display = 'block';
+            document.getElementById('twitterResults').style.display = 'none';
+            
+            // Fazer requisição AJAX
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('max_tweets', maxTweets);
+            
+            fetch('/api/social_media/twitter', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Esconder loader
+                document.getElementById('twitterLoader').style.display = 'none';
+                
+                if (data.error) {
+                    alert('Erro: ' + data.error);
+                    return;
+                }
+                
+                // Preencher dados do perfil
+                document.getElementById('twitterProfileImage').src = data.profile.profile_image_url;
+                document.getElementById('twitterName').textContent = data.profile.name;
+                document.getElementById('twitterScreenName').textContent = '@' + data.profile.screen_name;
+                document.getElementById('twitterDescription').textContent = data.profile.description;
+                document.getElementById('twitterFollowers').textContent = data.profile.followers_count;
+                document.getElementById('twitterFollowing').textContent = data.profile.friends_count;
+                document.getElementById('twitterTweetsCount').textContent = data.profile.statuses_count;
+                document.getElementById('twitterLocation').textContent = data.profile.location;
+                document.getElementById('twitterCreatedAt').textContent = 'Conta criada em: ' + new Date(data.profile.created_at).toLocaleDateString();
+                
+                // Preencher tweets
+                const tweetsContainer = document.getElementById('twitterTweets');
+                tweetsContainer.innerHTML = '';
+                
+                data.tweets.forEach(tweet => {
+                    const tweetElement = document.createElement('div');
+                    tweetElement.className = 'list-group-item';
+                    
+                    const tweetDate = new Date(tweet.created_at).toLocaleDateString() + ' ' + new Date(tweet.created_at).toLocaleTimeString();
+                    
+                    tweetElement.innerHTML = `
+                        <p>${tweet.text}</p>
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">${tweetDate}</small>
+                            <div>
+                                <span class="badge bg-primary me-1"><i class="fas fa-retweet"></i> ${tweet.retweet_count}</span>
+                                <span class="badge bg-danger"><i class="fas fa-heart"></i> ${tweet.favorite_count}</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    tweetsContainer.appendChild(tweetElement);
+                });
+                
+                // Armazenar dados para visualização
+                document.getElementById('twitterVisualizeBtn').dataset.data = JSON.stringify(data);
+                
+                // Mostrar resultados
+                document.getElementById('twitterResults').style.display = 'block';
+            })
+            .catch(error => {
+                document.getElementById('twitterLoader').style.display = 'none';
+                alert('Erro ao processar requisição: ' + error);
+            });
+        });
+        
+        // Twitter Visualize Button
+        document.getElementById('twitterVisualizeBtn').addEventListener('click', function() {
+            const username = document.getElementById('twitterUsername').value;
+            const data = JSON.parse(this.dataset.data);
+            
+            // Fazer requisição para visualização
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('network_type', 'twitter');
+            formData.append('data', JSON.stringify(data));
+            
+            fetch('/api/social_media/visualize', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Erro: ' + data.error);
+                    return;
+                }
+                
+                // Exibir imagem de visualização
+                document.getElementById('twitterConnectionGraph').src = '/view_image/' + data.image_path;
+                document.getElementById('twitterVisualization').style.display = 'block';
+            })
+            .catch(error => {
+                alert('Erro ao gerar visualização: ' + error);
+            });
+        });
+        
+        // Instagram Form
+        document.getElementById('instagramForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('instagramUsername').value;
+            const maxPosts = document.getElementById('instagramMaxPosts').value;
+            
+            // Mostrar loader
+            document.getElementById('instagramLoader').style.display = 'block';
+            document.getElementById('instagramResults').style.display = 'none';
+            
+            // Fazer requisição AJAX
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('max_posts', maxPosts);
+            
+            fetch('/api/social_media/instagram', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Esconder loader
+                document.getElementById('instagramLoader').style.display = 'none';
+                
+                if (data.error) {
+                    alert('Erro: ' + data.error);
+                    return;
+                }
+                
+                // Preencher dados do perfil
+                document.getElementById('instagramProfileImage').src = data.profile.profile_pic_url;
+                document.getElementById('instagramFullName').textContent = data.profile.full_name;
+                document.getElementById('instagramUsername').textContent = '@' + data.profile.username;
+                document.getElementById('instagramBiography').textContent = data.profile.biography;
+                document.getElementById('instagramFollowers').textContent = data.profile.followers_count;
+                document.getElementById('instagramFollowing').textContent = data.profile.following_count;
+                document.getElementById('instagramMediaCount').textContent = data.profile.media_count;
+                
+                if (data.profile.external_url) {
+                    document.getElementById('instagramExternalUrl').innerHTML = `<a href="${data.profile.external_url}" target="_blank">${data.profile.external_url}</a>`;
+                } else {
+                    document.getElementById('instagramExternalUrl').textContent = '';
+                }
+                
+                document.getElementById('instagramVerified').innerHTML = data.profile.is_verified ? 
+                    '<span class="badge bg-primary"><i class="fas fa-check-circle"></i> Verificado</span>' : '';
+                
+                // Preencher posts
+                const postsContainer = document.getElementById('instagramPosts');
+                postsContainer.innerHTML = '';
+                
+                data.posts.forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.className = 'list-group-item';
+                    
+                    const postDate = new Date(post.date).toLocaleDateString();
+                    
+                    postElement.innerHTML = `
+                        <p>${post.caption}</p>
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">${postDate}</small>
+                            <div>
+                                <span class="badge bg-primary me-1"><i class="fas fa-heart"></i> ${post.likes}</span>
+                                <span class="badge bg-secondary"><i class="fas fa-comment"></i> ${post.comments}</span>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a href="${post.url}" target="_blank" class="btn btn-sm btn-outline-primary">Ver Post</a>
+                        </div>
+                    `;
+                    
+                    postsContainer.appendChild(postElement);
+                });
+                
+                // Armazenar dados para visualização
+                document.getElementById('instagramVisualizeBtn').dataset.data = JSON.stringify(data);
+                
+                // Mostrar resultados
+                document.getElementById('instagramResults').style.display = 'block';
+            })
+            .catch(error => {
+                document.getElementById('instagramLoader').style.display = 'none';
+                alert('Erro ao processar requisição: ' + error);
+            });
+        });
+        
+        // Instagram Visualize Button
+        document.getElementById('instagramVisualizeBtn').addEventListener('click', function() {
+            const username = document.getElementById('instagramUsername').value;
+            const data = JSON.parse(this.dataset.data);
+            
+            // Fazer requisição para visualização
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('network_type', 'instagram');
+            formData.append('data', JSON.stringify(data));
+            
+            fetch('/api/social_media/visualize', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Erro: ' + data.error);
+                    return;
+                }
+                
+                // Exibir imagem de visualização
+                document.getElementById('instagramConnectionGraph').src = '/view_image/' + data.image_path;
+                document.getElementById('instagramVisualization').style.display = 'block';
+            })
+            .catch(error => {
+                alert('Erro ao gerar visualização: ' + error);
+            });
+        });
+        
+        // Facebook Form
+        document.getElementById('facebookForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('facebookUsername').value;
+            const maxPosts = document.getElementById('facebookMaxPosts').value;
+            
+            // Mostrar loader
+            document.getElementById('facebookLoader').style.display = 'block';
+            document.getElementById('facebookResults').style.display = 'none';
+            
+            // Fazer requisição AJAX
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('max_posts', maxPosts);
+            
+            fetch('/api/social_media/facebook', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Esconder loader
+                document.getElementById('facebookLoader').style.display = 'none';
+                
+                if (data.error) {
+                    alert('Erro: ' + data.error);
+                    return;
+                }
+                
+                // Preencher dados do perfil
+                document.getElementById('facebookProfileImage').src = data.profile.profile_picture || 'https://via.placeholder.com/100';
+                document.getElementById('facebookName').textContent = data.profile.name;
+                document.getElementById('facebookUsername').textContent = data.profile.user_name ? '@' + data.profile.user_name : '';
+                document.getElementById('facebookFollowers').textContent = data.profile.followers || 'N/A';
+                document.getElementById('facebookFollowing').textContent = data.profile.following || 'N/A';
+                document.getElementById('facebookFriends').textContent = data.profile.friends_count || 'N/A';
+                document.getElementById('facebookLocation').textContent = data.profile.location || '';
+                
+                // Trabalho e educação
+                if (data.profile.work && data.profile.work.length > 0) {
+                    document.getElementById('facebookWork').textContent = 'Trabalho: ' + data.profile.work.map(w => w.employer).join(', ');
+                } else {
+                    document.getElementById('facebookWork').textContent = '';
+                }
+                
+                if (data.profile.education && data.profile.education.length > 0) {
+                    document.getElementById('facebookEducation').textContent = 'Educação: ' + data.profile.education.map(e => e.school).join(', ');
+                } else {
+                    document.getElementById('facebookEducation').textContent = '';
+                }
+                
+                // Preencher posts
+                const postsContainer = document.getElementById('facebookPosts');
+                postsContainer.innerHTML = '';
+                
+                data.posts.forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.className = 'list-group-item';
+                    
+                    const postDate = post.time ? new Date(post.time).toLocaleDateString() : 'Data desconhecida';
+                    
+                    postElement.innerHTML = `
+                        <p>${post.text || 'Sem texto'}</p>
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">${postDate}</small>
+                            <div>
+                                <span class="badge bg-primary me-1"><i class="fas fa-thumbs-up"></i> ${post.likes || 0}</span>
+                                <span class="badge bg-secondary me-1"><i class="fas fa-comment"></i> ${post.comments || 0}</span>
+                                <span class="badge bg-info"><i class="fas fa-share"></i> ${post.shares || 0}</span>
+                            </div>
+                        </div>
+                        ${post.post_url ? `<div class="mt-2">
+                            <a href="${post.post_url}" target="_blank" class="btn btn-sm btn-outline-primary">Ver Post</a>
+                        </div>` : ''}
+                    `;
+                    
+                    postsContainer.appendChild(postElement);
+                });
+                
+                // Armazenar dados para visualização
+                document.getElementById('facebookVisualizeBtn').dataset.data = JSON.stringify(data);
+                
+                // Mostrar resultados
+                document.getElementById('facebookResults').style.display = 'block';
+            })
+            .catch(error => {
+                document.getElementById('facebookLoader').style.display = 'none';
+                alert('Erro ao processar requisição: ' + error);
+            });
+        });
+        
+        // Facebook Visualize Button
+        document.getElementById('facebookVisualizeBtn').addEventListener('click', function() {
+            const username = document.getElementById('facebookUsername').value;
+            const data = JSON.parse(this.dataset.data);
+            
+            // Fazer requisição para visualização
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('network_type', 'facebook');
+            formData.append('data', JSON.stringify(data));
+            
+            fetch('/api/social_media/visualize', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Erro: ' + data.error);
+                    return;
+                }
+                
+                // Exibir imagem de visualização
+                document.getElementById('facebookConnectionGraph').src = '/view_image/' + data.image_path;
+                document.getElementById('facebookVisualization').style.display = 'block';
+            })
+            .catch(error => {
+                alert('Erro ao gerar visualização: ' + error);
+            });
+        });
+    </script>
+</body>
+</html>

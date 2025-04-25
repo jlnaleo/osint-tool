@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferramenta OSINT - Sobre</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            padding-top: 60px;
+            background-color: #f8f9fa;
+        }
+        .card {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: #343a40;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #343a40;
+        }
+        .team-member {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .team-member img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 5px solid #f8f9fa;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        footer {
+            margin-top: 50px;
+            padding: 20px 0;
+            background-color: #343a40;
+            color: white;
+        }
+        .timeline {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            background-color: #343a40;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -3px;
+        }
+        .timeline-container {
+            padding: 10px 40px;
+            position: relative;
+            background-color: inherit;
+            width: 50%;
+        }
+        .timeline-container::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            right: -13px;
+            background-color: white;
+            border: 4px solid #343a40;
+            top: 15px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        .left {
+            left: 0;
+        }
+        .right {
+            left: 50%;
+        }
+        .left::before {
+            content: " ";
+            height: 0;
+            position: absolute;
+            top: 22px;
+            width: 0;
+            z-index: 1;
+            right: 30px;
+            border: medium solid #f8f9fa;
+            border-width: 10px 0 10px 10px;
+            border-color: transparent transparent transparent #f8f9fa;
+        }
+        .right::before {
+            content: " ";
+            height: 0;
+            position: absolute;
+            top: 22px;
+            width: 0;
+            z-index: 1;
+            left: 30px;
+            border: medium solid #f8f9fa;
+            border-width: 10px 10px 10px 0;
+            border-color: transparent #f8f9fa transparent transparent;
+        }
+        .right::after {
+            left: -12px;
+        }
+        .timeline-content {
+            padding: 20px 30px;
+            background-color: white;
+            position: relative;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        @media screen and (max-width: 600px) {
+            .timeline::after {
+                left: 31px;
+            }
+            .timeline-container {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+            }
+            .timeline-container::before {
+                left: 60px;
+                border: medium solid #f8f9fa;
+                border-width: 10px 10px 10px 0;
+                border-color: transparent #f8f9fa transparent transparent;
+            }
+            .left::after, .right::after {
+                left: 18px;
+            }
+            .right {
+                left: 0%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">Ferramenta OSINT</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Início</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/social_media">Redes Sociais</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/contact_info">E-mails e Contatos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/image_recognition">Reconhecimento de Imagens</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/metadata_analysis">Análise de Metadados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/about">Sobre</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <div class="container">
+        <h1 class="mb-4">Sobre a Ferramenta OSINT</h1>
+        <p class="lead">Uma solução completa para coleta e análise de informações de fontes abertas.</p>
+
+        <!-- Sobre a Ferramenta -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">O que é OSINT?</h5>
+            </div>
+            <div class="card-body">
+                <p>OSINT (Open Source Intelligence) ou Inteligência de Fontes Abertas é o processo de coleta, análise e tomada de decisões com base em dados disponíveis publicamente. Diferente de outras formas de inteligência, o OSINT utiliza apenas informações que estão disponíveis ao público em geral.</p>
+                
+                <p>As fontes de OSINT incluem:</p>
+                <ul>
+                    <li>Redes sociais (Twitter, Facebook, Instagram, LinkedIn, etc.)</li>
+                    <li>Sites de notícias e blogs</li>
+                    <li>Fóruns e comunidades online</li>
+                    <li>Documentos públicos e registros governamentais</li>
+                    <li>Imagens e vídeos disponíveis publicamente</li>
+                    <li>Dados de domínios e endereços IP</li>
+                    <li>Metadados de arquivos compartilhados publicamente</li>
+                </ul>
+                
+                <p>O OSINT é amplamente utilizado em diversas áreas, incluindo:</p>
+                <ul>
+                    <li>Segurança da informação e cibersegurança</li>
+                    <li>Investigações corporativas</li>
+                    <li>Jornalismo investigativo</li>
+                    <li>Pesquisa acadêmica</li>
+                    <li>Análise de mercado e concorrência</li>
+                    <li>Verificação de fatos e combate à desinformação</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Recursos da Ferramenta -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recursos da Ferramenta</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 mb-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-share-alt"></i>
+                        </div>
+                        <h5>Busca em Redes Sociais</h5>
+                        <p>Coleta e análise de informações de perfis em redes sociais como Twitter, Instagram e Facebook.</p>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <h5>Busca de E-mails e Contatos</h5>
+                        <p>Identificação de e-mails, números de telefone e outras informações de contato associadas a pessoas ou domínios.</p>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <h5>Reconhecimento de Imagens</h5>
+                        <p>Análise de imagens para detecção de faces, objetos, cores e comparação de faces.</p>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="feature-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <h5>Análise de Metadados</h5>
+                        <p>Extração e análise de metadados de diferentes tipos de arquivos, revelando informações ocultas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Uso Ético -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Uso Ético e Responsável</h5>
+            </div>
+            <div class="card-body">
+                <p>Esta ferramenta foi desenvolvida para fins educacionais, de pesquisa e para uso legítimo em investigações. Ao utilizar esta ferramenta, você concorda em:</p>
+                
+                <ul>
+                    <li>Respeitar a privacidade das pessoas e organizações</li>
+                    <li>Utilizar as informações coletadas apenas para fins legítimos e legais</li>
+                    <li>Não utilizar a ferramenta para assédio, perseguição ou qualquer atividade maliciosa</li>
+                    <li>Cumprir todas as leis e regulamentos aplicáveis, incluindo leis de proteção de dados</li>
+                    <li>Obter as permissões necessárias antes de coletar ou analisar informações de terceiros</li>
+                </ul>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> O uso indevido desta ferramenta pode violar leis de privacidade e proteção de dados. O usuário é o único responsável pelo uso que faz desta ferramenta e pelas consequências de suas ações.
+                </div>
+            </div>
+        </div>
+
+        <!-- Histórico de Desenvolvimento -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Histórico de Desenvolvimento</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-container left">
+                        <div class="timeline-content">
+                            <h5>Definição de Requisitos</h5>
+                            <p>Identificação das necessidades específicas e definição das funcionalidades principais da ferramenta.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-container right">
+                        <div class="timeline-content">
+                            <h5>Pesquisa de Tecnologias</h5>
+                            <p>Avaliação e seleção das melhores bibliotecas e ferramentas para implementação de cada módulo.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-container left">
+                        <div class="timeline-content">
+                            <h5>Desenvolvimento dos Módulos</h5>
+                            <p>Implementação dos quatro módulos principais: redes sociais, e-mails e contatos, reconhecimento de imagens e análise de metadados.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-container right">
+                        <div class="timeline-content">
+                            <h5>Interface de Usuário</h5>
+                            <p>Criação de uma interface web intuitiva e responsiva para facilitar o uso da ferramenta.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-container left">
+                        <div class="timeline-content">
+                            <h5>Testes e Otimização</h5>
+                            <p>Realização de testes extensivos e otimização do desempenho de todas as funcionalidades.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-container right">
+                        <div class="timeline-content">
+                            <h5>Lançamento</h5>
+                            <p>Disponibilização da ferramenta completa para uso, com documentação detalhada.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tecnologias Utilizadas -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Tecnologias Utilizadas</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>Backend</h6>
+                        <ul>
+                            <li>Python 3.10</li>
+                            <li>Flask (Framework Web)</li>
+                            <li>Tweepy (API Twitter)</li>
+                            <li>Instaloader (Instagram)</li>
+                            <li>BeautifulSoup (Web Scraping)</li>
+                            <li>Requests (HTTP)</li>
+                            <li>OpenCV (Processamento de Imagens)</li>
+                            <li>Pillow (Manipulação de Imagens)</li>
+                            <li>ExifRead (Metadados de Imagens)</li>
+                            <li>PyPDF2 (Análise de PDFs)</li>
+                            <li>python-docx (Documentos Word)</li>
+                            <li>openpyxl (Planilhas Excel)</li>
+                            <li>NetworkX (Visualização de Redes)</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Frontend</h6>
+                        <ul>
+                            <li>HTML5</li>
+                            <li>CSS3</li>
+                            <li>JavaScript</li>
+                            <li>Bootstrap 5 (Framework CSS)</li>
+                            <li>Font Awesome (Ícones)</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Outras Ferramentas</h6>
+                        <ul>
+                            <li>Git (Controle de Versão)</li>
+                            <li>Pandas (Análise de Dados)</li>
+                            <li>Matplotlib (Visualização de Dados)</li>
+                            <li>Python-whois (Consultas WHOIS)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contato e Suporte -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Contato e Suporte</h5>
+            </div>
+            <div class="card-body">
+                <p>Para dúvidas, sugestões ou relatos de problemas, entre em contato através dos seguintes canais:</p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Suporte Técnico</h6>
+                        <ul>
+                            <li><i class="fas fa-envelope me-2"></i> suporte@ferramentaosint.com.br</li>
+                            <li><i class="fas fa-globe me-2"></i> www.ferramentaosint.com.br/suporte</li>
+                            <li><i class="fas fa-phone me-2"></i> (11) 1234-5678</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Redes Sociais</h6>
+                        <ul>
+                            <li><i class="fab fa-github me-2"></i> github.com/ferramentaosint</li>
+                            <li><i class="fab fa-twitter me-2"></i> twitter.com/ferramentaosint</li>
+                            <li><i class="fab fa-linkedin me-2"></i> linkedin.com/company/ferramentaosint</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle"></i> Esta ferramenta é mantida por uma equipe dedicada e está em constante evolução. Suas contribuições e feedback são fundamentais para o aprimoramento contínuo.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center">
+        <div class="container">
+            <p>&copy; 2025 Ferramenta OSINT - Todos os direitos reservados</p>
+            <p>Desenvolvido para fins educacionais e de pesquisa</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
