@@ -1,0 +1,69 @@
+# .gitignore para a Ferramenta OSINT
+
+# Arquivos temporários Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Arquivos de ambiente virtual
+venv/
+ENV/
+env/
+
+# Arquivos de configuração IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.project
+.pydevproject
+.settings/
+
+# Arquivos de log
+*.log
+logs/
+
+# Arquivos de banco de dados
+*.db
+*.sqlite
+*.sqlite3
+
+# Arquivos de resultados e uploads
+uploads/
+results/
+temp/
+*.csv
+*.json
+*.xlsx
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de configuração com informações sensíveis
+config.ini
+secrets.py
+.env
+
+# Arquivos de cache
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
