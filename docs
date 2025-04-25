@@ -1,1 +1,219 @@
+# Documentação da Ferramenta OSINT
+
+## Sumário
+1. [Introdução](#introdução)
+2. [Instalação](#instalação)
+3. [Iniciando a Aplicação](#iniciando-a-aplicação)
+4. [Módulos e Funcionalidades](#módulos-e-funcionalidades)
+   - [Busca em Redes Sociais](#busca-em-redes-sociais)
+   - [Busca de E-mails e Informações de Contato](#busca-de-e-mails-e-informações-de-contato)
+   - [Reconhecimento de Imagens](#reconhecimento-de-imagens)
+   - [Análise de Metadados de Arquivos](#análise-de-metadados-de-arquivos)
+5. [Uso Ético e Responsável](#uso-ético-e-responsável)
+6. [Solução de Problemas](#solução-de-problemas)
+7. [Referências](#referências)
+
+## Introdução
+
+A Ferramenta OSINT (Open Source Intelligence) é uma aplicação web desenvolvida para auxiliar na coleta e análise de informações de fontes abertas. Ela integra quatro módulos principais que permitem realizar buscas em redes sociais, encontrar e-mails e informações de contato, analisar imagens e extrair metadados de arquivos.
+
+Esta ferramenta foi desenvolvida para fins educacionais, de pesquisa e para uso legítimo em investigações. Ela utiliza apenas informações disponíveis publicamente e deve ser usada de acordo com as leis e regulamentos aplicáveis.
+
+## Instalação
+
+### Requisitos do Sistema
+- Python 3.10 ou superior
+- Pip (gerenciador de pacotes Python)
+- Navegador web moderno (Chrome, Firefox, Edge, etc.)
+
+### Dependências
+A ferramenta depende de várias bibliotecas Python que podem ser instaladas usando o pip:
+
+```bash
+pip install tweepy instaloader facebook-scraper networkx matplotlib requests beautifulsoup4 flask
+pip install opencv-python pillow
+pip install exifread python-docx openpyxl PyPDF2
+pip install python-whois pandas
+```
+
+### Instalação Manual
+1. Clone ou baixe o repositório da ferramenta
+2. Navegue até o diretório da ferramenta
+3. Instale as dependências:
+
+```bash
+cd osint_tool
+pip install -r requirements.txt
+```
+
+## Iniciando a Aplicação
+
+Para iniciar a aplicação, execute o seguinte comando no diretório raiz da ferramenta:
+
+```bash
+python app.py
+```
+
+Isso iniciará o servidor Flask e a aplicação estará disponível em `http://localhost:5000` no seu navegador.
+
+## Módulos e Funcionalidades
+
+### Busca em Redes Sociais
+
+Este módulo permite coletar e analisar informações de perfis em redes sociais como Twitter, Instagram e Facebook.
+
+#### Funcionalidades:
+- **Busca no Twitter**: Coleta informações de perfil e tweets de um usuário específico
+- **Busca no Instagram**: Coleta informações de perfil e posts de um usuário específico
+- **Busca no Facebook**: Coleta informações de perfil e posts de um usuário específico
+- **Visualização de Conexões**: Cria uma visualização gráfica das conexões sociais de um usuário
+
+#### Como usar:
+1. Acesse a página "Redes Sociais" no menu principal
+2. Selecione a rede social desejada (Twitter, Instagram ou Facebook)
+3. Insira o nome de usuário que deseja analisar
+4. Defina o número de posts/tweets a serem coletados
+5. Clique em "Buscar" para iniciar a coleta de dados
+6. Os resultados serão exibidos na página, incluindo informações do perfil e posts recentes
+7. Para visualizar as conexões sociais, clique no botão "Visualizar Conexões" após a busca
+
+### Busca de E-mails e Informações de Contato
+
+Este módulo permite encontrar e-mails, números de telefone e outras informações de contato associadas a pessoas ou domínios.
+
+#### Funcionalidades:
+- **Busca de E-mails por Domínio**: Encontra e-mails associados a um domínio específico
+- **Busca de E-mails por Pessoa**: Gera possíveis e-mails para uma pessoa com base em variações de nome
+- **Análise de Domínio**: Coleta informações detalhadas sobre um domínio, incluindo dados WHOIS e SSL
+- **Busca de Informações de Telefone**: Analisa números de telefone para obter informações como país, operadora e tipo de linha
+
+#### Como usar:
+1. Acesse a página "E-mails e Contatos" no menu principal
+2. Selecione a funcionalidade desejada
+3. Para busca de e-mails por domínio:
+   - Insira o domínio (ex: exemplo.com.br)
+   - Defina o número de páginas a serem analisadas
+   - Clique em "Buscar"
+4. Para busca de e-mails por pessoa:
+   - Insira o nome completo da pessoa
+   - Insira os domínios a serem verificados (separados por vírgula)
+   - Clique em "Gerar"
+5. Para análise de domínio:
+   - Insira o domínio a ser analisado
+   - Clique em "Analisar"
+6. Para busca de informações de telefone:
+   - Insira o número de telefone (com código do país)
+   - Clique em "Analisar"
+7. Os resultados serão exibidos na página
+
+### Reconhecimento de Imagens
+
+Este módulo permite analisar imagens para detectar faces, objetos, cores e comparar faces.
+
+#### Funcionalidades:
+- **Detecção de Faces**: Identifica faces em imagens e extrai informações como gênero, idade e emoção
+- **Detecção de Objetos**: Identifica objetos em imagens
+- **Análise de Cores**: Extrai as cores dominantes e estatísticas de cores de uma imagem
+- **Comparação de Faces**: Compara duas faces para determinar se pertencem à mesma pessoa
+
+#### Como usar:
+1. Acesse a página "Reconhecimento de Imagens" no menu principal
+2. Selecione a funcionalidade desejada nas abas disponíveis
+3. Para detecção de faces:
+   - Selecione uma imagem do seu computador
+   - Clique em "Analisar"
+4. Para detecção de objetos:
+   - Selecione uma imagem do seu computador
+   - Clique em "Analisar"
+5. Para análise de cores:
+   - Selecione uma imagem do seu computador
+   - Clique em "Analisar"
+6. Para comparação de faces:
+   - Selecione duas imagens do seu computador
+   - Clique em "Comparar"
+7. Os resultados serão exibidos na página, incluindo imagens processadas e informações extraídas
+
+### Análise de Metadados de Arquivos
+
+Este módulo permite extrair e analisar metadados de diferentes tipos de arquivos, revelando informações ocultas.
+
+#### Funcionalidades:
+- **Análise de Imagens**: Extrai metadados EXIF de imagens, incluindo informações de câmera, data e localização GPS
+- **Análise de Documentos**: Extrai metadados de documentos Word, incluindo autor, datas e estatísticas
+- **Análise de PDFs**: Extrai metadados de arquivos PDF, incluindo autor, criador, datas e informações de páginas
+- **Análise de Planilhas**: Extrai metadados de planilhas Excel e CSV, incluindo autor, datas e informações de planilhas
+
+#### Como usar:
+1. Acesse a página "Análise de Metadados" no menu principal
+2. Selecione um arquivo do seu computador
+3. Opcionalmente, marque a opção para exportar resultados para CSV
+4. Clique em "Analisar"
+5. Os resultados serão exibidos na página, organizados por tipo de arquivo
+6. Para exportar os resultados, clique no botão "Exportar para CSV"
+7. Para realizar uma nova análise, clique no botão "Nova Análise"
+
+## Uso Ético e Responsável
+
+Esta ferramenta foi desenvolvida para fins educacionais, de pesquisa e para uso legítimo em investigações. Ao utilizar esta ferramenta, você concorda em:
+
+- Respeitar a privacidade das pessoas e organizações
+- Utilizar as informações coletadas apenas para fins legítimos e legais
+- Não utilizar a ferramenta para assédio, perseguição ou qualquer atividade maliciosa
+- Cumprir todas as leis e regulamentos aplicáveis, incluindo leis de proteção de dados
+- Obter as permissões necessárias antes de coletar ou analisar informações de terceiros
+
+O uso indevido desta ferramenta pode violar leis de privacidade e proteção de dados. O usuário é o único responsável pelo uso que faz desta ferramenta e pelas consequências de suas ações.
+
+## Solução de Problemas
+
+### Problemas Comuns e Soluções
+
+#### A aplicação não inicia
+- Verifique se todas as dependências estão instaladas corretamente
+- Verifique se está usando Python 3.10 ou superior
+- Verifique se há erros no console
+
+#### Erro ao buscar informações em redes sociais
+- Verifique se o nome de usuário está correto
+- Verifique se a rede social está acessível
+- Algumas redes sociais podem limitar o acesso a perfis privados
+- Pode haver limitações de taxa (rate limiting) nas APIs
+
+#### Erro ao analisar imagens
+- Verifique se o formato da imagem é suportado (JPG, PNG, BMP)
+- Verifique se a imagem não está corrompida
+- Para detecção de faces, verifique se a imagem contém faces visíveis e bem iluminadas
+
+#### Erro ao analisar metadados
+- Verifique se o formato do arquivo é suportado
+- Verifique se o arquivo não está corrompido
+- Alguns arquivos podem não conter metadados ou podem ter metadados limitados
+
+### Logs e Depuração
+
+A aplicação gera logs que podem ser úteis para identificar problemas. Os logs são armazenados no diretório `logs` da aplicação.
+
+Para habilitar logs mais detalhados, edite o arquivo `app.py` e altere o nível de log para `DEBUG`:
+
+```python
+app.logger.setLevel(logging.DEBUG)
+```
+
+## Referências
+
+### Bibliotecas Utilizadas
+- [Tweepy](https://www.tweepy.org/) - API do Twitter
+- [Instaloader](https://instaloader.github.io/) - API do Instagram
+- [Facebook-Scraper](https://github.com/kevinzg/facebook-scraper) - Scraping do Facebook
+- [OpenCV](https://opencv.org/) - Processamento de imagens
+- [ExifRead](https://pypi.org/project/ExifRead/) - Leitura de metadados EXIF
+- [PyPDF2](https://pypi.org/project/PyPDF2/) - Análise de PDFs
+- [Python-DOCX](https://python-docx.readthedocs.io/) - Análise de documentos Word
+- [Openpyxl](https://openpyxl.readthedocs.io/) - Análise de planilhas Excel
+- [Flask](https://flask.palletsprojects.com/) - Framework web
+
+### Recursos Adicionais
+- [OSINT Framework](https://osintframework.com/) - Coleção de ferramentas OSINT
+- [OSINT Techniques](https://www.osinttechniques.com/) - Técnicas e tutoriais de OSINT
+- [Bellingcat](https://www.bellingcat.com/) - Exemplos de investigações usando OSINT
 
